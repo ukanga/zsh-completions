@@ -87,7 +87,7 @@ _managepy-reset(){
 
 _managepy-runfcgi(){
   local state
-  
+
   local fcgi_opts
   fcgi_opts=(
     'protocol[fcgi, scgi, ajp, ... (default fcgi)]:protocol:(fcgi scgi ajp)'
@@ -105,7 +105,7 @@ _managepy-runfcgi(){
     'outlog[write stdout to this file.]:file:_files'
     'errlog[write stderr to this file.]:file:_files'
   )
-  
+
   _arguments -s : \
     $nul_args \
     '*: :_values "FCGI Setting" $fcgi_opts' && ret=0
@@ -180,7 +180,7 @@ _managepy-findstatic(){}
 
 _managepy-commands() {
   local -a commands
-  
+
   commands=(
     'cleanup:Can be run as a cronjob or directly to clean out old data from the database (only expired sessions at the moment).'
     'compilemessages:Compiles .po files to .mo files for use with builtin gettext support.'
@@ -221,18 +221,19 @@ _managepy-commands() {
       'findstatic:Finds the absolute paths for the given static file(s).'
     )
   fi
-  
+
   _describe -t commands 'manage.py command' commands && ret=0
 }
 
 _applist() {
   local line
   local -a apps
-  _call_program help-command "python -c \"import os.path as op, re, settings, sys;\\
-                                          bn=op.basename(op.abspath(op.curdir));[sys\\
-                                          .stdout.write(str(re.sub(r'^%s\.(.*?)$' %
-                                          bn, r'\1', i)) + '\n') for i in settings.\\
-                                          INSTALLED_APPS if re.match(r'^%s' % bn, i)]\"" \
+  _call_program help-command "python -c \"import os.path as op, re, sys;\\
+                                          from django.conf import settings;\\
+                                          bn=op.basename(op.abspath(op.curdir));\\
+                                          [sys.stdout.write(str(i) + '\n') \\
+                                          for i in settings.INSTALLED_APPS \\
+                                            if re.match(r'^%s' % bn, i)]\"" \
                              | while read -A line; do apps=($line $apps) done
   _values 'Application' $apps && ret=0
 }
@@ -248,7 +249,7 @@ _manage.py() {
   )
 
   local curcontext=$curcontext ret=1
-  
+
   if ((CURRENT == 2)); then
     _managepy-commands
   else
